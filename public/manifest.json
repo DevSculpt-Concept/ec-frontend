@@ -1,0 +1,25 @@
+{
+  "name": "The Curry Fabulous Family",
+  "short_name": "Curry Fab Family",
+  "description": "The Curry Fabulous Family specializes in providing exceptional catering services for all kinds of events.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#e91e63",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/primary-text-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/primary-text-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
+
