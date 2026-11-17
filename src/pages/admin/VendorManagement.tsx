@@ -207,7 +207,9 @@ export function VendorManagement() {
 
     try {
       const res = await createVendorMutation.mutateAsync(vendorForm);
-      showToast.success("Vendor created successfully! They are automatically verified.");
+      const emailSent = (res as { data?: { emailSent?: boolean } })?.data?.emailSent;
+      if (emailSent) showToast.success("Vendor created", `Login details were emailed to ${vendorForm.email}`);
+      else showToast.warning("Vendor created, but the login email was NOT sent", "Check Settings → Email and share the password manually.");
       setShowCreateModal(false);
       setVendorForm(initialVendorForm);
       const newId = (res as { data?: { vendor?: { id?: string } } })?.data?.vendor?.id;

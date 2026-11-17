@@ -28,6 +28,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { adminService } from "@/services/api/admin.service";
 import {
   usePlatformSettings,
   useBulkUpdateSettings,
@@ -62,6 +63,7 @@ const formatSettingKey = (key: string): string => {
 export function SettingsPage() {
   const [activeTab, setActiveTab] = useState<TabType>("platform");
   const [showCreateAdminModal, setShowCreateAdminModal] = useState(false);
+  const [testingEmail, setTestingEmail] = useState(false);
   const [localSettings, setLocalSettings] = useState<Record<string, string>>({});
   const [hasChanges, setHasChanges] = useState(false);
   const [, /* setEditingKey */] = useState<string | null>(null);
@@ -111,12 +113,7 @@ export function SettingsPage() {
     
     // Default values if not in DB
     const defaults: Record<string, string> = {
-      smtp_sender_email: "info@curryfabulousfamily.com.ng",
-      smtp_sender_name: "Curry Fabulous Family",
-      smtp_host: "mail.curryfabulousfamily.com.ng",
       smtp_port: "465",
-      smtp_user: "info@curryfabulousfamily.com.ng",
-      smtp_pass: "f]yJ!=*Y6bqfJ5@=",
       smtp_min_interval: "60",
       smtp_daily_limit: "30",
     };
@@ -127,6 +124,21 @@ export function SettingsPage() {
   const getBooleanValue = (key: string): boolean => {
     const val = getSettingValue(key);
     return val === "true" || val === "1";
+  };
+
+  const handleSendTestEmail = async () => {
+    const to = window.prompt("Send a test email to which address?");
+    if (!to) return;
+    setTestingEmail(true);
+    try {
+      const res = await adminService.sendTestEmail(to.trim());
+      if (res.data?.sent) showToast.success("Test email sent", `Check the inbox of ${to.trim()}`);
+      else showToast.error("Test email failed", res.data?.error || "Unknown error");
+    } catch (error) {
+      showToast.error("Test email failed", error instanceof Error ? error.message : "Please try again");
+    } finally {
+      setTestingEmail(false);
+    }
   };
 
   const handleSaveAllSettings = async () => {
@@ -147,8 +159,9 @@ export function SettingsPage() {
     }
 
     try {
-      await createAdminMutation.mutateAsync(adminForm);
-      showToast.success("Admin account created successfully");
+      const res = await createAdminMutation.mutateAsync(adminForm);
+      if ((res as { data?: { emailSent?: boolean } })?.data?.emailSent) showToast.success("Admin created", `Login details were emailed to ${adminForm.email}`);
+      else showToast.warning("Admin created, but the login email was NOT sent", "Check the email settings and share the password manually.");
       setShowCreateAdminModal(false);
       setAdminForm({ email: "", password: "", full_name: "", phone: "" });
       refetchAdmins();
@@ -425,7 +438,7 @@ export function SettingsPage() {
             <div className="p-6 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900">Custom SMTP Configuration</h2>
               <p className="text-sm text-gray-500 mt-1">
-                Configure your custom SMTP provider to send transactional emails.
+                Configure your custom SMTP provider to send transactional emails. Leave Host, Username and Password empty to use the server's own email settings (Gmail).
               </p>
             </div>
 
@@ -528,6 +541,9 @@ export function SettingsPage() {
 
               {/* Save Section */}
               <div className="pt-6 border-t flex justify-end gap-3">
+                <Button variant="outline" onClick={handleSendTestEmail} disabled={testingEmail || hasChanges}>
+                  {testingEmail ? "Sending..." : "Send test email"}
+                </Button>
                 <Button variant="outline" onClick={() => refetchSettings()}>
                   Cancel
                 </Button>

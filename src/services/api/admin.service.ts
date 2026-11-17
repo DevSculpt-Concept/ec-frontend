@@ -138,6 +138,9 @@ export const adminService = {
   updatePlatformSetting: async (key: string, value: unknown, description?: string): Promise<ApiResponse<{ setting: PlatformSetting }>> =>
     http.patch<{ setting: PlatformSetting }>(`/admin/settings/${encodeURIComponent(key)}`, { value, description }) as Promise<ApiResponse<{ setting: PlatformSetting }>>,
 
+  sendTestEmail: async (to: string): Promise<ApiResponse<{ sent: boolean; error: string | null }>> =>
+    http.post<{ sent: boolean; error: string | null }>("/admin/settings/test-email", { to }) as Promise<ApiResponse<{ sent: boolean; error: string | null }>>,
+
   bulkUpdateSettings: async (settings: Record<string, string>): Promise<ApiResponse<null>> =>
     http.put<null>("/admin/settings", { settings }) as Promise<ApiResponse<null>>,
 
