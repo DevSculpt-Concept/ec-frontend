@@ -11,15 +11,26 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { showToast } from "@/lib/toast";
 import { useVendorDetails, useUpdateVendor } from "@/hooks/useAdmin";
+import { useAllServiceTypes } from "@/hooks/useServiceTypes";
+import { VendorPhotoUploader } from "@/components/admin/VendorPhotoUploader";
+import { VendorPricingEditor } from "@/components/admin/VendorPricingEditor";
+import { VendorPortfolioManager } from "@/components/admin/VendorPortfolioManager";
+
+type Tab = "profile" | "pricing" | "portfolio";
 
 export function AdminVendorEdit() {
   const { vendorId } = useParams<{ vendorId: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isSetup = searchParams.get("setup") === "1"; // arrived straight after "Add vendor"
+  const [tab, setTab] = useState<Tab>("profile");
 
   const { data: vendorData, isLoading, isError } = useVendorDetails(vendorId || "");
+  const { data: serviceTypesData } = useAllServiceTypes(false);
+  const availableServiceTypes = serviceTypesData?.data?.serviceTypes || [];
   const updateVendorMutation = useUpdateVendor();
 
   const [formData, setFormData] = useState({
@@ -66,8 +77,13 @@ export function AdminVendorEdit() {
         vendorId,
         data: formData,
       });
-      showToast.success("Vendor profile updated successfully");
-      navigate(`/admin/vendors/${vendorId}`);
+      if (isSetup) {
+        showToast.success("Profile saved", "Now set prices and add portfolio items.");
+        setTab("pricing");
+      } else {
+        showToast.success("Vendor profile updated successfully");
+        navigate(`/admin/vendors/${vendorId}`);
+      }
     } catch (error) {
       showToast.error("Failed to update vendor", error instanceof Error ? error.message : "Please try again");
     }
@@ -108,7 +124,37 @@ export function AdminVendorEdit() {
           </div>
         )}
 
+        {!isLoading && !isError && isSetup && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-sm text-green-800">
+            Vendor created and verified. Finish setting them up: add their photo, service types, prices and portfolio below.
+          </div>
+        )}
+
         {!isLoading && !isError && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-6">
+            <VendorPhotoUploader
+              vendorId={vendorId || ""}
+              imageUrl={vendorData?.data?.vendor?.profileImage}
+              name={formData.business_name || "Vendor"}
+            />
+            <div className="flex gap-2 border-b border-gray-200">
+              {([["profile", "Profile"], ["pricing", "Pricing"], ["portfolio", "Portfolio"]] as [Tab, string][]).map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setTab(key)}
+                  className={`px-4 py-2 text-sm font-medium -mb-px border-b-2 cursor-pointer ${tab === key ? "border-primary text-primary" : "border-transparent text-gray-500 hover:text-gray-700"}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {tab === "pricing" && <VendorPricingEditor vendorId={vendorId || ""} />}
+            {tab === "portfolio" && <VendorPortfolioManager vendorId={vendorId || ""} serviceTypes={vendorData?.data?.vendor?.serviceTypes || []} />}
+          </div>
+        )}
+
+        {!isLoading && !isError && tab === "profile" && (
           <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-6">
             <h2 className="text-xl font-bold text-gray-900">Edit Vendor Information</h2>
 
@@ -188,6 +234,39 @@ export function AdminVendorEdit() {
                   value={formData.facebook_url}
                   onChange={(e) => setFormData({ ...formData, facebook_url: e.target.value })}
                 />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Service Types</label>
+                {availableServiceTypes.length === 0 ? (
+                  <p className="text-sm text-gray-500">No service types available. Add some under Service Types.</p>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 border border-gray-200 rounded-lg p-3">
+                    {availableServiceTypes.map((st) => {
+                      const on = formData.service_types.includes(st.name);
+                      return (
+                        <label
+                          key={st.id}
+                          className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer ${on ? "bg-primary/10 border border-primary" : "bg-gray-50 border border-transparent hover:bg-gray-100"}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={on}
+                            onChange={() =>
+                              setFormData({
+                                ...formData,
+                                service_types: on ? formData.service_types.filter((x) => x !== st.name) : [...formData.service_types, st.name],
+                              })
+                            }
+                            className="rounded border-gray-300 text-primary focus:ring-primary"
+                          />
+                          <span className="text-sm font-medium text-gray-700">{st.display_name}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+                <p className="text-xs text-gray-500 mt-1">Save the profile after changing services; pricing and portfolio use these.</p>
               </div>
 
               <div className="md:col-span-2">

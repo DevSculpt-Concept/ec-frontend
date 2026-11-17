@@ -347,3 +347,51 @@ export const useAdminAnalytics = () => {
     queryFn: () => paymentService.getAdminAnalytics(),
   });
 };
+
+// ========== Manage a vendor's photo, pricing & portfolio ==========
+export const useVendorPricing = (vendorId: string) =>
+  useQuery({
+    queryKey: ["admin", "vendors", vendorId, "pricing"],
+    queryFn: () => adminService.getVendorPricing(vendorId),
+    enabled: !!vendorId,
+  });
+
+export const useSetVendorPricing = (vendorId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ serviceType, price }: { serviceType: string; price: number }) =>
+      adminService.setVendorPricing(vendorId, serviceType, price),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "vendors", vendorId] }),
+  });
+};
+
+export const useVendorPortfolio = (vendorId: string) =>
+  useQuery({
+    queryKey: ["admin", "vendors", vendorId, "portfolio"],
+    queryFn: () => adminService.getVendorPortfolio(vendorId),
+    enabled: !!vendorId,
+  });
+
+export const useCreateVendorPortfolioItem = (vendorId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (form: FormData) => adminService.createVendorPortfolioItem(vendorId, form),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "vendors", vendorId, "portfolio"] }),
+  });
+};
+
+export const useDeleteVendorPortfolioItem = (vendorId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (portfolioId: string) => adminService.deleteVendorPortfolioItem(vendorId, portfolioId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "vendors", vendorId, "portfolio"] }),
+  });
+};
+
+export const useUploadVendorPicture = (vendorId: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (file: File) => adminService.uploadVendorProfilePicture(vendorId, file),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "vendors"] }),
+  });
+};

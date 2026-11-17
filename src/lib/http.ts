@@ -6,9 +6,9 @@ import {
   removeAuthToken,
 } from "@/config/api";
 
-/** e.g. https://ec.devsculptlimited.com/api/v1 */
+/** e.g. https://api.curryfabulousfamily.com.ng/api/v1 */
 export const API_URL: string = (
-  import.meta.env.VITE_API_URL || "https://ec.devsculptlimited.com/api/v1"
+  import.meta.env.VITE_API_URL || "https://api.curryfabulousfamily.com.ng/api/v1"
 ).replace(/\/+$/, "");
 
 /** Origin that serves the API, Socket.IO and /uploads (API_URL without the /api/v1 suffix). */

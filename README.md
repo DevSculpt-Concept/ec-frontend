@@ -18,7 +18,7 @@ A modern event vendor booking platform built with React 19, TypeScript, Tailwind
 - **React 19** - UI library
 - **TypeScript** - Type safety
 - **Vite** - Build tool
-- **Node.js + Express + MongoDB** - Backend API (`ec-backend`, deployed at `https://ec.devsculptlimited.com`)
+- **Node.js + Express + MongoDB** - Backend API (`ec-backend`, deployed at `https://api.curryfabulousfamily.com.ng`)
 - **Tailwind CSS** - Styling
 - **shadcn/ui** - UI components
 - **Zustand** - State management
@@ -50,7 +50,7 @@ A modern event vendor booking platform built with React 19, TypeScript, Tailwind
    ```bash
    cp .env.example .env
    ```
-   `.env.example` points at a local backend (`http://localhost:5001/api/v1`). If you don't create a `.env`, the app talks to the production API (`https://ec.devsculptlimited.com/api/v1`).
+   `.env.example` points at a local backend (`http://localhost:5001/api/v1`). If you don't create a `.env`, the app talks to the production API (`https://api.curryfabulousfamily.com.ng/api/v1`).
 
 4. Start the development server:
    ```bash
@@ -96,4 +96,4 @@ This project is licensed under the MIT License.
 - `ec-postman` – Postman collection and environments
 
 ## Hosting this app
-`netlify.toml` and `vercel.json` are included (SPA rewrite). Set `VITE_API_URL=https://ec.devsculptlimited.com/api/v1` in the host's environment settings, and add the site's URL to `CORS_ORIGINS` / `FRONTEND_URL` on the backend.
+`netlify.toml` and `vercel.json` are included (SPA rewrite). Set `VITE_API_URL=https://api.curryfabulousfamily.com.ng/api/v1` in the host's environment settings, and add the site's URL to `CORS_ORIGINS` / `FRONTEND_URL` on the backend.

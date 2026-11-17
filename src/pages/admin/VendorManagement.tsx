@@ -206,10 +206,12 @@ export function VendorManagement() {
     }
 
     try {
-      await createVendorMutation.mutateAsync(vendorForm);
+      const res = await createVendorMutation.mutateAsync(vendorForm);
       showToast.success("Vendor created successfully! They are automatically verified.");
       setShowCreateModal(false);
       setVendorForm(initialVendorForm);
+      const newId = (res as { data?: { vendor?: { id?: string } } })?.data?.vendor?.id;
+      if (newId) navigate(`/admin/vendors/${newId}/edit?setup=1`); // continue: photo, prices, portfolio
     } catch (error) {
       showToast.error("Failed to create vendor", error instanceof Error ? error.message : "Please try again");
     }

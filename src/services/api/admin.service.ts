@@ -148,6 +148,35 @@ export const adminService = {
   createAdmin: async (data: any): Promise<ApiResponse<{ user: AdminUser }>> =>
     http.post<{ user: AdminUser }>("/admin/admins", data) as Promise<ApiResponse<{ user: AdminUser }>>,
 
+  // ── Manage a vendor's photo, pricing & portfolio on their behalf ─────────
+  uploadVendorProfilePicture: async (vendorId: string, file: File): Promise<ApiResponse<{ profileImageUrl: string }>> => {
+    if (file.size > 5 * 1024 * 1024) {
+      throw new Error(`Image size is ${(file.size / 1024 / 1024).toFixed(2)}MB. Maximum allowed size is 5MB.`);
+    }
+    const form = new FormData();
+    form.append("image", file);
+    return http.post<{ profileImageUrl: string }>(`/admin/vendors/${vendorId}/profile-picture`, form) as Promise<ApiResponse<{ profileImageUrl: string }>>;
+  },
+
+  getVendorPricing: async (vendorId: string): Promise<ApiResponse<{ pricing: { serviceType: string; price: number | null; pricingId: string | null }[] }>> =>
+    http.get(`/admin/vendors/${vendorId}/pricing`) as any,
+
+  setVendorPricing: async (vendorId: string, serviceType: string, price: number): Promise<ApiResponse<{ pricing: unknown }>> =>
+    http.put(`/admin/vendors/${vendorId}/pricing`, { serviceType, price }) as any,
+
+  getVendorPortfolio: async (vendorId: string, page = 1, limit = 50): Promise<ApiResponse<{ items: any[]; pagination: any }>> =>
+    http.get(`/admin/vendors/${vendorId}/portfolio`, { page, limit }) as any,
+
+  /** FormData fields: title, description, serviceType, cost, displayOrder, youtubeUrl, media (file) */
+  createVendorPortfolioItem: async (vendorId: string, form: FormData): Promise<ApiResponse<{ item: any }>> =>
+    http.post(`/admin/vendors/${vendorId}/portfolio`, form) as any,
+
+  updateVendorPortfolioItem: async (vendorId: string, portfolioId: string, form: FormData): Promise<ApiResponse<{ item: any }>> =>
+    http.patch(`/admin/vendors/${vendorId}/portfolio/${portfolioId}`, form) as any,
+
+  deleteVendorPortfolioItem: async (vendorId: string, portfolioId: string): Promise<ApiResponse<null>> =>
+    http.delete(`/admin/vendors/${vendorId}/portfolio/${portfolioId}`) as any,
+
   getRecentReports: async (limit: number = 10) => {
     // Reports are support tickets
     const { supportService } = await import("./support.service");
